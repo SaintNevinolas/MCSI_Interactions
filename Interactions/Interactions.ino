@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include "LSM6DS3.h"
+#include "LSM6DS3.h" //Install the library Seeed Arduino LSM6DS3 by Seeed
 
 #define D_TOUCH 8 //D8
 #define A_PIEZO 14 //A0
@@ -17,7 +17,8 @@ LSM6DS3 I2C_ACCELERO(I2C_MODE, 0x6A); //Capteur 6 Axis Accelerometer&Gyroscope
                                   */
 
 float acceleroXYZ[3]={};
-
+int piezoValue = -1;
+int touchValue = -1;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -42,20 +43,34 @@ void setup() {
 void loop() {
   //trouver_adresse_i2c(); Décommenter pour connaître l'addresse de l'accéléromètre si jamais elle change
 
-  
   readAccelero(I2C_ACCELERO,false);
   if (acceleroXYZ[0]>=4.0){
     Serial.println("Gauche");
+    //Code pour comuniquer avec le serveur
   }else if(acceleroXYZ[0]<=-4.0){
     Serial.println("Droite");
+    //Code pour comuniquer avec le serveur
   }else{
     Serial.println("Centre");
+    //Code pour comuniquer avec le serveur
   }
-  Serial.print("TOUCH Value : ");
-  Serial.println(digitalRead(D_TOUCH));
-  
-  Serial.print("PIZEO Value : ");
-  Serial.println(analogRead(A_PIEZO));
+
+  readTouch(false);
+  if(touchValue){
+    Serial.println("TOUCHED");
+    //Code pour comuniquer avec le serveur
+  }else{
+    Serial.println("NOT TOUCHED");
+    //Code pour comuniquer avec le serveur
+  }
+  readPiezo(true);
+  if(piezoValue>1000){
+    Serial.println("Vibration");
+    //Code pour comuniquer avec le serveur
+  }else{
+    Serial.println("No Vibration");
+    //Code pour comuniquer avec le serveur
+  }
   delay(100);
 }
 
@@ -70,6 +85,22 @@ void readAccelero(LSM6DS3 accelero,bool afficher){
     Serial.print(acceleroXYZ[1]);
     Serial.print(" ");
     Serial.println(acceleroXYZ[2]);
+  }
+}
+
+void readTouch(bool afficher){
+  touchValue = digitalRead(D_TOUCH);
+  if(afficher) {
+    Serial.print("Valeur Touch : ");
+    Serial.println(touchValue);
+  }
+}
+
+void readPiezo(bool afficher){
+  piezoValue = analogRead(A_PIEZO);
+  if(afficher) {
+    Serial.print("Valeur piezo : ");
+    Serial.println(piezoValue);
   }
 }
 
