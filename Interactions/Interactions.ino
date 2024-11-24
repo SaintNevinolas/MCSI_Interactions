@@ -1,9 +1,11 @@
 #include <Wire.h>
 #include "LSM6DS3.h" //Install the library Seeed Arduino LSM6DS3 by Seeed
+#include "Ultrasonic.h"
 
 #define D_TOUCH 8 //D8
 #define A_PIEZO 14 //A0
-LSM6DS3 I2C_ACCELERO(I2C_MODE, 0x6A); //Capteur 6 Axis Accelerometer&Gyroscope
+Ultrasonic D_USONIC(7); //D7 Ultrasonic Ranger
+LSM6DS3 I2C_ACCELERO(I2C_MODE, 0x6A); //Capteur 6 Axis Accelerometer&Gyroscope ; On far LEFT I2C pin
                                   /*
                                   * Dans les cas où ce genre d'erreur apparaît :
                                   * LSM6DS3.cpp:89:17: error: 'class arduino::ArduinoSPI' has no member named 'setClockDivider'
@@ -19,6 +21,10 @@ LSM6DS3 I2C_ACCELERO(I2C_MODE, 0x6A); //Capteur 6 Axis Accelerometer&Gyroscope
 float acceleroXYZ[3]={};
 int piezoValue = -1;
 int touchValue = -1;
+long USonicRangeInCentimeters = -1;
+
+const int seuil = 10; //distance en cm à définir pour considérer la distance de la feuille à souffler
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -42,7 +48,7 @@ void setup() {
 
 void loop() {
   //trouver_adresse_i2c(); Décommenter pour connaître l'addresse de l'accéléromètre si jamais elle change
-
+  
   readAccelero(I2C_ACCELERO,false);
   if (acceleroXYZ[0]>=4.0){
     Serial.println("Gauche");
@@ -54,7 +60,7 @@ void loop() {
     Serial.println("Centre");
     //Code pour comuniquer avec le serveur
   }
-
+  
   readTouch(false);
   if(touchValue){
     Serial.println("TOUCHED");
@@ -63,6 +69,7 @@ void loop() {
     Serial.println("NOT TOUCHED");
     //Code pour comuniquer avec le serveur
   }
+  
   readPiezo(true);
   if(piezoValue>1000){
     Serial.println("Vibration");
@@ -70,6 +77,15 @@ void loop() {
   }else{
     Serial.println("No Vibration");
     //Code pour comuniquer avec le serveur
+  }
+
+  readUltraSonic(true);
+  if(USonicRangeInCentimeters>seuil){
+    Serial.println("On souffle");
+    //Code pour communiquer avec le serveur
+  }else{
+    Serial.println("On souffle pas");
+    //Code pour communiquer avec le serveur
   }
   delay(100);
 }
@@ -104,6 +120,14 @@ void readPiezo(bool afficher){
   }
 }
 
+void readUltraSonic(bool afficher){
+  USonicRangeInCentimeters = D_USONIC.MeasureInCentimeters();
+  if(afficher){
+    Serial.print("Obstacle distance : ");
+    Serial.print(USonicRangeInCentimeters);
+    Serial.println("cm");
+  }
+}
 int config_free_fall_detect(void) {
   uint8_t error = 0;
   uint8_t dataToWrite = 0;
