@@ -48,45 +48,47 @@ void setup() {
 
 void loop() {
   //trouver_adresse_i2c(); Décommenter pour connaître l'addresse de l'accéléromètre si jamais elle change
-  
+  String sensorValues = "";
   readAccelero(I2C_ACCELERO,false);
   if (acceleroXYZ[0]>=4.0){
-    Serial.println("Gauche");
-    //Code pour comuniquer avec le serveur
+    //Serial.println("Gauche");
+    sensorValues+="G,";
   }else if(acceleroXYZ[0]<=-4.0){
-    Serial.println("Droite");
-    //Code pour comuniquer avec le serveur
+    //Serial.println("Droite");
+    sensorValues+="D,";
   }else{
-    Serial.println("Centre");
-    //Code pour comuniquer avec le serveur
+    //Serial.println("Centre");
+    sensorValues+="C,";
   }
   
-  readTouch(true);
-  // if(touchValue){
-  //   Serial.println("TOUCHED");
-  //   //Code pour comuniquer avec le serveur
-  // }else{
-  //   Serial.println("NOT TOUCHED");
-  //   //Code pour comuniquer avec le serveur
-  // }
+  readTouch(false);
+  if(touchValue){
+    //Serial.println("TOUCHED");
+    sensorValues+="1,";
+  }else{
+    //Serial.println("NOT TOUCHED");
+    sensorValues+="0,";
+  }
   
-  readPiezo(true);
-  // if(piezoValue>1000){
-  //   Serial.println("Vibration");
-  //   //Code pour comuniquer avec le serveur
-  // }else{
-  //   Serial.println("No Vibration");
-  //   //Code pour comuniquer avec le serveur
-  // }
+  readPiezo(false);
+  if(piezoValue>1000){
+    //Serial.println("Vibration");
+    sensorValues+="1,";
+  }else{
+    //Serial.println("No Vibration");
+    sensorValues+="0,";
+  }
 
-  readUltraSonic(true);
-  // if(USonicRangeInCentimeters>seuil){
-  //   Serial.println("On souffle");
-  //   //Code pour communiquer avec le serveur
-  // }else{
-  //   Serial.println("On souffle pas");
-  //   //Code pour communiquer avec le serveur
-  // }
+  readUltraSonic(false);
+  if(USonicRangeInCentimeters>seuil){
+    //Serial.println("On souffle");
+    sensorValues+="1,";
+  }else{
+    //Serial.println("On souffle pas");
+    sensorValues+="0,";
+  }
+  sensorValues=sensorValues.substring(0,sensorValues.length()-1); //retirer la virgule de fin
+  Serial.println(sensorValues);
   delay(100);
 }
 
