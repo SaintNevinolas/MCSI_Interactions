@@ -49,6 +49,6 @@ while True:
         #    client_socket.sendto(data, address)
         #    Thread(target=stop_fire).start()
         
-        if sensorValues[3] == "1":
+        if sensorValues[3] == "1": # Il faut modifier et faire un press et un release sur le serveur j'pense pour le nitro car il marche pas
             data = b'NITRO'
             client_socket.sendto(data, address)
