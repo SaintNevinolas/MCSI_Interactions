@@ -61,32 +61,32 @@ void loop() {
     //Code pour comuniquer avec le serveur
   }
   
-  readTouch(false);
-  if(touchValue){
-    Serial.println("TOUCHED");
-    //Code pour comuniquer avec le serveur
-  }else{
-    Serial.println("NOT TOUCHED");
-    //Code pour comuniquer avec le serveur
-  }
+  readTouch(true);
+  // if(touchValue){
+  //   Serial.println("TOUCHED");
+  //   //Code pour comuniquer avec le serveur
+  // }else{
+  //   Serial.println("NOT TOUCHED");
+  //   //Code pour comuniquer avec le serveur
+  // }
   
   readPiezo(true);
-  if(piezoValue>1000){
-    Serial.println("Vibration");
-    //Code pour comuniquer avec le serveur
-  }else{
-    Serial.println("No Vibration");
-    //Code pour comuniquer avec le serveur
-  }
+  // if(piezoValue>1000){
+  //   Serial.println("Vibration");
+  //   //Code pour comuniquer avec le serveur
+  // }else{
+  //   Serial.println("No Vibration");
+  //   //Code pour comuniquer avec le serveur
+  // }
 
   readUltraSonic(true);
-  if(USonicRangeInCentimeters>seuil){
-    Serial.println("On souffle");
-    //Code pour communiquer avec le serveur
-  }else{
-    Serial.println("On souffle pas");
-    //Code pour communiquer avec le serveur
-  }
+  // if(USonicRangeInCentimeters>seuil){
+  //   Serial.println("On souffle");
+  //   //Code pour communiquer avec le serveur
+  // }else{
+  //   Serial.println("On souffle pas");
+  //   //Code pour communiquer avec le serveur
+  // }
   delay(100);
 }
 
