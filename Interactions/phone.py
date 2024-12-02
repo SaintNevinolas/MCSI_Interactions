@@ -2,13 +2,15 @@ from oscpy.server import OSCThreadServer
 import time
 import pygame
 import pyvjoy  # Importation de pyvjoy pour manipuler un périphérique vJoy
+import serial
 
-# Initialisation de Pygame pour afficher le joystick virtuel
-pygame.init()
+ser = serial.Serial("COM5", 9600)
+# # Initialisation de Pygame pour afficher le joystick virtuel
+# pygame.init()
 
-# Configurer un écran pour afficher le joystick
-screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Simulation de Joystick virtuel")
+# # Configurer un écran pour afficher le joystick
+# screen = pygame.display.set_mode((800, 600))
+# pygame.display.set_caption("Simulation de Joystick virtuel")
 
 # Paramètres pour l'axe du joystick
 center_x = 400  # Position du joystick sur l'écran (centre)
@@ -49,11 +51,11 @@ def callback_orientation_yaw(*values):
     joystick_x = max(min(joystick_x, center_x + joystick_radius), center_x - joystick_radius)
     
     # Afficher les valeurs pour déboguer
-    print(f"Inclinaison yaw : {yaw}° -> Pourcentage du joystick horizontal : {joystick_percentage * 100}% -> Position : {joystick_x}")
+    #print(f"Inclinaison yaw : {yaw}° -> Pourcentage du joystick horizontal : {joystick_percentage * 100}% -> Position : {joystick_x}")
     
     # Mettre à jour l'affichage du joystick
-    pygame.draw.circle(screen, (255, 0, 0), (int(joystick_x), center_y), joystick_radius)
-    pygame.display.update()
+    #pygame.draw.circle(screen, (255, 0, 0), (int(joystick_x), center_y), joystick_radius)
+    #pygame.display.update()
 
     # Simuler le mouvement du joystick avec vJoy
     simulate_joystick_event(joystick_percentage)
@@ -69,29 +71,61 @@ def simulate_joystick_event(joystick_percentage):
     # Mettre à jour l'axe X du périphérique vJoy
     vj.set_axis(pyvjoy.HID_USAGE_X, vjoy_value)  # Axe X de vJoy
 
+
 # Setup OSC
 osc = OSCThreadServer(default_handler=dump)
 osc.listen(address='0.0.0.0', port=8000, default=True)
 
+def callback_null(*values):
+    return
+
 # Lier les callbacks aux messages OSC
 osc.bind(b'/multisense/orientation/yaw', callback_orientation_yaw)
+osc.bind(b'/multisense/orientation/pitch', callback_null)
+osc.bind(b'/multisense/orientation/roll', callback_null)
 
 # Boucle principale pour afficher le joystick et simuler les mouvements
 running = True
+sensorValues = {0,0,0,0,0}
+i = 0
+k = 0
+
 while running:
-    # Gestion des événements Pygame (permet de fermer proprement la fenêtre)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    
+    # # Gestion des événements Pygame (permet de fermer proprement la fenêtre)
+    # for event in pygame.event.get():
+    #     if event.type == pygame.QUIT:
+    #         running = False
 
-    # Nettoyer l'écran à chaque itération
-    screen.fill((0, 0, 0))
+    # # Nettoyer l'écran à chaque itération
+    # screen.fill((0, 0, 0))
 
-    # Dessiner le joystick virtuel au centre
-    pygame.draw.circle(screen, (255, 255, 255), (center_x, center_y), joystick_radius)  # Joystick au centre
-    pygame.display.update()
+    # # Dessiner le joystick virtuel au centre
+    # pygame.draw.circle(screen, (255, 255, 255), (center_x, center_y), joystick_radius)  # Joystick au centre
+    # pygame.display.update()
+    if ser.in_waiting > 0:
+        if i < 2:
+            ser.readline()
+            i = i + 1
+        else:
+            test = ser.readline()
+            data = test.decode('utf-8').strip()
+            print(f"Recu : {data}")
+            sensorValues = data.split(",",-1)
+            if len(sensorValues) == 5:
+                
+                if sensorValues[4] == "1":  # Avancer
+                    vj.set_axis(pyvjoy.HID_USAGE_Y, 32767)  # Axe Y à 0 pour avancer
+                    vj.set_axis(pyvjoy.HID_USAGE_Y, 32766)
+                else:  # Reculer
+                    vj.set_axis(pyvjoy.HID_USAGE_Y, 0)  # Axe Y à 32767 pour reculer
+                    vj.set_axis(pyvjoy.HID_USAGE_Y,1)
+                
+                if sensorValues[3] == "1":
+                    vj.set_button(3,1)
+                else:
+                    vj.set_button(3,0)
 
-    time.sleep(0.016)  # Pause pour limiter la fréquence d'actualisation
 
 # Arrêter le serveur OSC
 osc.stop()

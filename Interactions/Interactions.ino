@@ -4,6 +4,7 @@
 
 #define D_TOUCH 8 //D8
 #define A_PIEZO 14 //A0
+#define D_TILT 15
 Ultrasonic D_USONIC(7); //D7 Ultrasonic Ranger
 LSM6DS3 I2C_ACCELERO(I2C_MODE, 0x6A); //Capteur 6 Axis Accelerometer&Gyroscope ; On far LEFT I2C pin
                                   /*
@@ -22,34 +23,35 @@ float acceleroXYZ[3]={};
 int piezoValue = -1;
 int touchValue = -1;
 long USonicRangeInCentimeters = -1;
+long tiltValue = -1;
 
-const int seuil = 10; //distance en cm à définir pour considérer la distance de la feuille à souffler
+const int seuil = 17; //distance en cm à définir pour considérer la distance de la feuille à souffler
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   while (!Serial);
-  if (I2C_ACCELERO.begin() != 0) {
-      Serial.println("Device error");
-  } else {
-      Serial.println("Device OK!");
-  }
+  // if (I2C_ACCELERO.begin() != 0) {
+  //     Serial.println("Device error");
+  // } else {
+  //     Serial.println("Device OK!");
+  // }
 
-  if (0 != config_free_fall_detect()) {
-      Serial.println("Fail to configure!");
-  } else {
-      Serial.println("Success to Configure!");
-  }
+  // if (0 != config_free_fall_detect()) {
+  //     Serial.println("Fail to configure!");
+  // } else {
+  //     Serial.println("Success to Configure!");
+  // }
   pinMode(D_TOUCH, INPUT);
   pinMode(A_PIEZO, INPUT);
-  //pinMode(D_TILT, INPUT);
+  pinMode(D_TILT, INPUT);
   //Wire1.begin();
 }
 
 void loop() {
   //trouver_adresse_i2c(); Décommenter pour connaître l'addresse de l'accéléromètre si jamais elle change
   String sensorValues = "";
-  readAccelero(I2C_ACCELERO,false);
+  //readAccelero(I2C_ACCELERO,false);
   if (acceleroXYZ[0]>=4.0){
     //Serial.println("Gauche");
     sensorValues+="G,";
@@ -61,7 +63,7 @@ void loop() {
     sensorValues+="C,";
   }
   
-  readTouch(false);
+  //readTouch(false);
   if(touchValue){
     //Serial.println("TOUCHED");
     sensorValues+="1,";
@@ -70,7 +72,7 @@ void loop() {
     sensorValues+="0,";
   }
   
-  readPiezo(false);
+  //readPiezo(false);
   if(piezoValue>1000){
     //Serial.println("Vibration");
     sensorValues+="1,";
@@ -87,9 +89,19 @@ void loop() {
     //Serial.println("On souffle pas");
     sensorValues+="0,";
   }
+
+  readTilt(false);
+  if(tiltValue==1){
+    //Serial.println("Vibration");
+    sensorValues+="1,";
+  }else{
+    //Serial.println("No Vibration");
+    sensorValues+="0,";
+  }
+
   sensorValues=sensorValues.substring(0,sensorValues.length()-1); //retirer la virgule de fin
   Serial.println(sensorValues);
-  delay(100);
+  
 }
 
 void readAccelero(LSM6DS3 accelero,bool afficher){
@@ -119,6 +131,15 @@ void readPiezo(bool afficher){
   if(afficher) {
     Serial.print("Valeur piezo : ");
     Serial.println(piezoValue);
+  }
+}
+
+void readTilt(bool afficher){
+  //Serial.println(analogRead(5));
+  tiltValue = digitalRead(D_TILT);
+  if(afficher) {
+    Serial.print("Valeur tilt : ");
+    Serial.println(tiltValue);
   }
 }
 
